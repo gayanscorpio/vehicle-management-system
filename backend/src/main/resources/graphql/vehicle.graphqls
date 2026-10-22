@@ -1,0 +1,54 @@
+"""
+GraphQL types and operations for vehicle registration
+"""
+type Vehicle {
+  id: ID!
+  vin: String!
+  plateNumber: String!
+  make: String!
+  model: String!
+  year: Int!
+  color: String
+  ownerId: ID
+  createdAt: String
+  updatedAt: String
+}
+
+input CreateVehicleInput {
+  vin: String!
+  plateNumber: String!
+  make: String!
+  model: String!
+  year: Int!
+  color: String
+  ownerId: ID
+}
+
+input UpdateVehicleInput {
+  vin: String!
+  plateNumber: String!
+  make: String!
+  model: String!
+  year: Int!
+  color: String
+  ownerId: ID
+}
+
+type VehiclePage {
+  content: [Vehicle!]!
+  totalElements: Int!
+  totalPages: Int!
+  page: Int!
+  size: Int!
+}
+
+type Query {
+  vehicle(id: ID!): Vehicle
+  vehicles(page: Int = 0, size: Int = 20, vin: String, plateNumber: String, make: String, model: String, year: Int): VehiclePage!
+}
+
+type Mutation {
+  createVehicle(input: CreateVehicleInput!): Vehicle!
+  updateVehicle(id: ID!, input: UpdateVehicleInput!): Vehicle!
+  deleteVehicle(id: ID!): Boolean!
+}
