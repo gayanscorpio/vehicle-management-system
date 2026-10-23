@@ -23,13 +23,11 @@ npm -v
 2. Start the Backend
 Open the backend project folder:
 
-
 cd backend
 Run the backend:
 
 mvn spring-boot:run
 Or run the Spring Boot main class from your IDE.
-
 
 Verify backend is running
 
@@ -73,7 +71,6 @@ query {
 
 If this works, the backend is ready.
 
-
 4. Frontend Setup
 Open the frontend folder:
 
@@ -88,12 +85,14 @@ Make sure the file exists in the frontend root:
 frontend/.env
 
 5. Run the Frontend
+
 npm run dev
 
 Open the browser to:
 http://localhost:5173
 
 6. Frontend Routes to Test
+
 http://localhost:5173/
 
 Vehicles list:
@@ -109,10 +108,12 @@ Edit page:
 http://localhost:5173/vehicles/1/edit
 
 7. TypeScript Validation
+
 cd frontend
 npx tsc --noEmit
 
 8. Production Build
+
 When ready for deployment:
 
 cd frontend
@@ -147,6 +148,7 @@ the root element exists in index.html
 
 Issue: TypeScript errors
 npx tsc --noEmit
+
 10. Quick Start Sequence
 
 Run both together in separate terminals:
@@ -165,11 +167,7 @@ cd frontend
 npm install
 npm run dev
 
-
-
-
 Then open: http://localhost:5173
-
 
 11. Final Check
 
@@ -182,6 +180,7 @@ create form loads
 vehicle detail page loads
 editing works
 deleting works
+
 12. Optional: Use Docker or CI Later
 
 If needed later, you can add:
