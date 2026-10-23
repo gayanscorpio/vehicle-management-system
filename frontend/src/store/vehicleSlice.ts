@@ -2,6 +2,14 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { gql } from "@apollo/client";
 import client from "../apolloClient";
 
+import {
+    CreateVehicleInput,
+    CreateVehicleMutationData,
+    Vehicle,
+    VehicleListPayload,
+    VehicleListQueryData,
+} from "../types/Vehicle";
+
 // GraphQL query used to fetch a paginated list of vehicles.
 // This is the operation that will hit the backend endpoint defined in apolloClient.js.
 const GET_VEHICLES = gql`
@@ -42,7 +50,29 @@ const CREATE_VEHICLE = gql`
 
 // Initial state for the vehicle slice.
 // This is the base state Redux uses before any data is loaded.
-const initialState = {
+/* const initialState = {
+    items: [],
+    selectedVehicle: null,
+    loading: false,
+    error: null,
+    page: 0,
+    size: 20,
+    totalElements: 0,
+    totalPages: 0,
+}; */
+
+type VehicleState = {
+    items: Vehicle[];
+    selectedVehicle: Vehicle | null;
+    loading: boolean;
+    error: string | null;
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+};
+
+const initialState: VehicleState = {
     items: [],
     selectedVehicle: null,
     loading: false,
@@ -56,7 +86,7 @@ const initialState = {
 
 // createAsyncThunk is Redux Toolkit's recommended way to handle async actions.
 // Here, it wraps the Apollo GraphQL query and turns it into a Redux action flow.
-export const fetchVehicles = createAsyncThunk(
+/* export const fetchVehicles = createAsyncThunk(
     "vehicle/fetchVehicles",
     async ({ page = 0, size = 20 } = {}, thunkAPI) => {
         try {
@@ -73,27 +103,57 @@ export const fetchVehicles = createAsyncThunk(
             return thunkAPI.rejectWithValue(error.message);
         }
     }
-);
+); */
+
+export const fetchVehicles = createAsyncThunk
+    <VehicleListPayload,
+        { page?: number; size?: number } | undefined
+    >("vehicle/fetchVehicles", async (args, thunkAPI) => {
+        const { page = 0, size = 20 } = args ?? {};
+        try {
+            const response = await client.query<VehicleListQueryData>({
+                query: GET_VEHICLES,
+                variables: { page, size },
+            });
+
+            //if error found retrun below error rather than undefined
+            if (!response.data?.vehicles) {
+                throw new Error("Vehicle list response is empty");
+            }
+
+            return response.data?.vehicles
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Failed to fetch vehicles";
+            throw new Error(message);
+        }
+    });
 
 // Async thunk for creating a vehicle.
 // This is used when the user submits the vehicle form.
-export const addVehicle = createAsyncThunk(
-    "vehicle/addVehicle",
-    async (input, thunkAPI) => {
-        try {
-            // ApolloClient.mutate sends a GraphQL mutation to the backend.
-            const response = await client.mutate({
-                mutation: CREATE_VEHICLE,
-                variables: { input },
-            });
+export const addVehicle = createAsyncThunk<
+    Vehicle,
+    CreateVehicleInput
+>("vehicle/addVehicle", async (input) => {
+    try {
+        // ApolloClient.mutate sends a GraphQL mutation to the backend.
+        const response = await client.mutate<CreateVehicleMutationData>({
+            mutation: CREATE_VEHICLE,
+            variables: { input },
+        });
 
-            // Return the newly created vehicle object.
-            return response.data.createVehicle;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(error.message);
+        if (!response.data?.createVehicle) {
+            throw new Error("Create vehicle response is empty");
         }
+
+        // Return the newly created vehicle object.
+        return response.data?.createVehicle;
+    } catch (error) {
+        const message =
+            error instanceof Error ? error.message : "Failed to create vehicle";
+        throw new Error(message);
     }
-);
+});
 
 // createSlice is the main Redux store builder.
 // It contains the reducer logic and automatically creates action creators.
@@ -130,7 +190,7 @@ const vehicleSlice = createSlice({
             // FETCH: request failed; store the error for UI display.
             .addCase(fetchVehicles.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload || "Failed to fetch vehicles";
+                state.error = action.error.message ?? "Failed to fetch vehicles";
             })
             // CREATE: while request is pending, set loading flag.
             .addCase(addVehicle.pending, (state) => {
@@ -145,7 +205,7 @@ const vehicleSlice = createSlice({
             // CREATE: if mutation fails, store the error.
             .addCase(addVehicle.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload || "Failed to create vehicle";
+                state.error = action.error.message ?? "Failed to create vehicle";
             });
     },
 });

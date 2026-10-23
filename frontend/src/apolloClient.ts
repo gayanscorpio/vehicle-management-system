@@ -47,7 +47,7 @@ const client = new ApolloClient({
                     vehicles: {
                         // Helps merge paginated data when fetching list results
                         // across multiple calls.
-                        keyArgs: ["vin", "plateNumber", "make", "model", "year"],
+                        keyArgs: ["page", "size", "vin", "plateNumber", "make", "model", "year"],
                         merge(existing, incoming) {
                             return incoming;
                         },

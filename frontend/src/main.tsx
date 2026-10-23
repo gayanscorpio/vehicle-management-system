@@ -15,7 +15,13 @@ import "./index.css";
 // 2) Provider: Redux global state
 //
 // BrowserRouter enables routing for the React UI.
-ReactDOM.createRoot(document.getElementById("root")).render(
+
+const rootElement = document.getElementById("root");
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ApolloProvider client={client}>
       <Provider store={store}>

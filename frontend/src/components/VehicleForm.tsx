@@ -1,7 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+    CreateVehicleInput,
+    CreateVehicleMutationData,
+    UpdateVehicleInput,
+    UpdateVehicleMutationData,
+    Vehicle,
+} from "../types/Vehicle";
+
+//Convert the form component to typed props/state
+type VehicleFormState = {
+    vin: string;
+    plateNumber: string;
+    make: string;
+    model: string;
+    year: number;
+    color: string;
+    ownerId: string;
+};
+
+type VehicleQueryData = {
+    vehicle: Vehicle | null;
+};
+
 
 // GraphQL query for fetching a single vehicle when editing.
 const GET_VEHICLE = gql`
@@ -61,7 +84,8 @@ export default function VehicleForm() {
     const isEditMode = Boolean(id);
 
     // Local form state
-    const [form, setForm] = useState({
+    //This makes - VehicleFormState form state explicit and safe.
+    const [form, setForm] = useState<VehicleFormState>({
         vin: "",
         plateNumber: "",
         make: "",
@@ -72,26 +96,28 @@ export default function VehicleForm() {
     });
 
     // Fetch existing vehicle when editing
-    const { data, loading: loadingVehicle } = useQuery(GET_VEHICLE, {
+    const { data, loading: loadingVehicle } = useQuery<VehicleQueryData>(GET_VEHICLE, {
         variables: { id },
         skip: !isEditMode,
-        onCompleted: (response) => {
-            if (response?.vehicle) {
-                setForm({
-                    vin: response.vehicle.vin || "",
-                    plateNumber: response.vehicle.plateNumber || "",
-                    make: response.vehicle.make || "",
-                    model: response.vehicle.model || "",
-                    year: response.vehicle.year || new Date().getFullYear(),
-                    color: response.vehicle.color || "",
-                    ownerId: response.vehicle.ownerId || "",
-                });
-            }
-        },
-    });
+    })
+    useEffect(() => {
+        if (data?.vehicle) {
+            setForm({
+                vin: data.vehicle.vin || "",
+                plateNumber: data.vehicle.plateNumber || "",
+                make: data.vehicle.make || "",
+                model: data.vehicle.model || "",
+                year: data.vehicle.year || new Date().getFullYear(),
+                color: data.vehicle.color || "",
+                ownerId: data.vehicle.ownerId || "",
+            });
+        }
+    }, [data]);
 
     // Create mutation
-    const [createVehicle, { loading: creating }] = useMutation(CREATE_VEHICLE, {
+    const [createVehicle, { loading: creating }] = useMutation<CreateVehicleMutationData,
+        { input: CreateVehicleInput }
+    >(CREATE_VEHICLE, {
         onCompleted: (response) => {
             if (response?.createVehicle?.id) {
                 navigate(`/vehicles/${response.createVehicle.id}`);
@@ -103,7 +129,9 @@ export default function VehicleForm() {
     });
 
     // Update mutation
-    const [updateVehicle, { loading: updating }] = useMutation(UPDATE_VEHICLE, {
+    const [updateVehicle, { loading: updating }] = useMutation<
+        UpdateVehicleMutationData, { id: string; input: UpdateVehicleInput }
+    >(UPDATE_VEHICLE, {
         onCompleted: (response) => {
             if (response?.updateVehicle?.id) {
                 navigate(`/vehicles/${response.updateVehicle.id}`);
@@ -119,7 +147,7 @@ export default function VehicleForm() {
         return <div>Loading vehicle...</div>;
     }
 
-    const handleChange = (event) => {
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
 
         setForm((prev) => ({
@@ -129,10 +157,10 @@ export default function VehicleForm() {
         }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const payload = {
+        const payload: CreateVehicleInput = {
             vin: form.vin.trim(),
             plateNumber: form.plateNumber.trim(),
             make: form.make.trim(),
@@ -142,11 +170,15 @@ export default function VehicleForm() {
             ownerId: form.ownerId ? form.ownerId.trim() : null,
         };
 
-        if (isEditMode) {
+        if (isEditMode && id) {
+            const updatePayload: UpdateVehicleInput = {
+                ...payload,
+            };
+
             updateVehicle({
                 variables: {
                     id,
-                    input: payload,
+                    input: updatePayload,
                 },
             });
         } else {
@@ -275,7 +307,7 @@ export default function VehicleForm() {
                         {isEditMode ? (updating ? "Updating..." : "Update Vehicle") : creating ? "Creating..." : "Create Vehicle"}
                     </button>
 
-                    <button type="button" onClick={() => history.goBack()}>
+                    <button type="button" onClick={() => navigate(-1)}>
                         Cancel
                     </button>
                 </div>

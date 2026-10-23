@@ -3,6 +3,8 @@ import { useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { Vehicle, VehicleDetailQueryData } from "../types/Vehicle";
+
 // GraphQL query to fetch one vehicle by id.
 const GET_VEHICLE = gql`
   query vehicle($id: ID!) {
@@ -29,7 +31,7 @@ function VehicleDetail() {
         return <div>Vehicle id is missing.</div>;
     }
 
-    const { data, loading, error } = useQuery(GET_VEHICLE, {
+    const { data, loading, error } = useQuery<VehicleDetailQueryData>(GET_VEHICLE, {
         variables: { id },
     });
 
@@ -37,7 +39,7 @@ function VehicleDetail() {
     if (error) return <div>Error: {error.message}</div>;
     if (!data?.vehicle) return <div>Vehicle not found.</div>;
 
-    const vehicle = data.vehicle;
+    const vehicle: Vehicle = data.vehicle;
 
     return (
         <div style={{ maxWidth: "600px", margin: "20px auto" }}>

@@ -3,6 +3,22 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Link } from "react-router-dom";
 import { gql } from "@apollo/client";
 
+import {
+    Vehicle,
+    VehicleListQueryData,
+    DeleteVehicleMutationData
+} from "../types/Vehicle";
+
+type VehicleListData = {
+    vehicles: {
+        content: Vehicle[];
+        totalElements: number;
+        totalPages: number;
+        page: number;
+        size: number;
+    };
+};
+
 // GraphQL query for listing vehicles.
 const GET_VEHICLES = gql`
   query vehicles($page: Int, $size: Int) {
@@ -32,19 +48,27 @@ const DELETE_VEHICLE = gql`
 `;
 
 function VehicleList() {
-    const { data, loading, error, refetch } = useQuery(GET_VEHICLES, {
+    /* const { data, loading, error, refetch } = useQuery(GET_VEHICLES, {
+         variables: { page: 0, size: 20 },
+         fetchPolicy: "cache-and-network",
+     }); */
+
+    //This gives proper autocomplete and type safety.
+    //This gives - VehicleListData proper autocomplete and type safety.
+    const { data, loading, error, refetch } = useQuery<VehicleListQueryData>(GET_VEHICLES, {
         variables: { page: 0, size: 20 },
         fetchPolicy: "cache-and-network",
     });
 
-    const [deleteVehicle, { loading: deleting }] = useMutation(DELETE_VEHICLE, {
-        onCompleted: () => {
-            refetch();
-        },
-        onError: (err) => {
-            alert("Delete failed: " + err.message);
-        },
-    });
+    const [deleteVehicle, { loading: deleting }] = useMutation<DeleteVehicleMutationData>
+        (DELETE_VEHICLE, {
+            onCompleted: () => {
+                refetch();
+            },
+            onError: (err) => {
+                alert("Delete failed: " + err.message);
+            },
+        });
 
     if (loading) return <div>Loading vehicles...</div>;
     if (error) return <div>Error: {error.message}</div>;
