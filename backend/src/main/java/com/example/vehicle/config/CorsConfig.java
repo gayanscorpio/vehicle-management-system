@@ -1,3 +1,4 @@
+
 package com.example.vehicle.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +10,7 @@ public class CorsConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
-		registry.addMapping("/graphql").allowedOrigins("http://localhost:5173").allowedMethods("GET", "POST", "OPTIONS")
-				.allowedHeaders("*");
+		registry.addMapping("/graphql").allowedOrigins("http://app.local", "http://localhost:5173")
+				.allowedMethods("GET", "POST", "OPTIONS").allowedHeaders("*");
 	}
 }

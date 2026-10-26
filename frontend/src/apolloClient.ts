@@ -10,7 +10,7 @@ import { setContext } from "@apollo/client/link/context";
 // We read the URL from environment variables so it can change per environment
 // (local, staging, production) without changing the code.
 const httpLink = createHttpLink({
-    uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://localhost:8080/graphql",
+    uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "http://api.local/graphql",
 });
 
 // Optional auth middleware:
