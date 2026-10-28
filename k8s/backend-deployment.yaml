@@ -20,14 +20,32 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: SERVER_PORT
+              value: "8080"
             - name: SPRING_DATASOURCE_URL
               value: jdbc:mysql://mysql:3306/vehicledb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
             - name: SPRING_DATASOURCE_USERNAME
-              value: root
+              valueFrom:
+                secretKeyRef:
+                  name: vehicle-secrets
+                  key: SPRING_DATASOURCE_USERNAME
             - name: SPRING_DATASOURCE_PASSWORD
-              value: Scorpio123
-            - name: SERVER_PORT
-              value: "8080"
+              valueFrom:
+                secretKeyRef:
+                  name: vehicle-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 15
           resources:
             requests:
               cpu: "200m"
