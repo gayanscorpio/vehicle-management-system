@@ -4,9 +4,10 @@ import { ApolloProvider } from "@apollo/client/react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import client from "./apolloClient";
+import { apolloClient } from "./apollo/apolloClient";
 import { store } from "./store/store";
 import "./index.css";
+import { AuthProvider } from "./context/AuthContext";
 
 // This is the application entry point.
 //
@@ -23,11 +24,13 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ApolloProvider client={client}>
-      <Provider store={store}>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+    <ApolloProvider client={apolloClient}>  {/*Apollo handles GraphQL */}
+      <Provider store={store}> {/* Redux handles app state */}
+        <AuthProvider> {/* AuthContext handles login info and role */}
+          <BrowserRouter> {/* BrowserRouter handles routes */}
+            <App />
+          </BrowserRouter>
+        </AuthProvider>
       </Provider>
     </ApolloProvider>
   </React.StrictMode>

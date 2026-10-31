@@ -1,58 +1,103 @@
 import React from "react";
-import { Routes, Route, Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Routes, Route, Link, Navigate } from "react-router-dom";
+import { ApolloProvider } from "@apollo/client/react";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { apolloClient } from "./apollo/apolloClient";
+import LoginPage from "./components/LoginPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleGuard } from "./components/RoleGuard";
 import VehicleList from "./components/VehicleList";
 import VehicleForm from "./components/VehicleForm";
-import VehicleDetail from "./components/VehicleDetail";
-import { RootState } from "./store/store";
 
-
-// App is the root React component of this frontend.
-// It is responsible for app-level initialization and rendering the main UI.
-function App() {
-
-  //const dispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.vehicle);
-
-  // If the fetch is still in progress, show a simple loading message.
-  if (loading) return <div>Loading vehicles...</div>;
-  // If the request failed, show the backend error message.
-  if (error) return <div>Error: {error}</div>;
-
-  // Optional: if you want App to initialize the vehicle list in Redux
-  // then this is fine. If you also fetch in VehicleList, you will double-fetch.
-  //const { items, loading, error } = useSelector((state) => state.vehicle);
-
-  // useEffect runs once after the component mounts.
-  // It is the correct place to trigger initialization logic such as fetching data.
-  /* useEffect(() => {
-    // Dispatch the async thunk that calls the GraphQL backend.
-    // This starts the request to /graphql and updates state when data returns.
-    dispatch(fetchVehicles({ page: 0, size: 20 }));
-  }, [dispatch]); */
-
+function AppShell() {
+  const { role, logoutUser, username } = useAuth();
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
-      <header style={{ marginBottom: "20px" }}>
-        <h1>Vehicle Registration</h1>
+    <div style={{ padding: "20px" }}>
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderBottom: "1px solid #ddd",
+          marginBottom: "20px",
+          paddingBottom: "10px",
+        }}
+      >
+        <div>
+          <h2>Vehicle System</h2>
+          {username && <small>Logged in as: {username}</small>}
+        </div>
 
-        <nav style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
-          <Link to="/">Home</Link>
+        <nav style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           <Link to="/vehicles">Vehicles</Link>
-          <Link to="/vehicles/new"> Create Vehicle</Link>
+
+          {role === "ADMIN" && (
+            <Link to="/vehicles/new">Create Vehicle</Link>
+          )}
+
+          {username ? (
+            <button onClick={logoutUser}>Logout</button>
+          ) : (
+            <Link to="/login">Login</Link>
+          )}
         </nav>
       </header>
 
       <Routes>
-        <Route path="/" element={<VehicleList />} />
-        <Route path="/vehicles" element={<VehicleList />} />
-        <Route path="/vehicles/new" element={<VehicleForm />} />
-        <Route path="/vehicles/:id" element={<VehicleDetail />} />
-        <Route path="/vehicles/:id/edit" element={<VehicleForm />} />
+        <Route path="/" element={<Navigate to="/vehicles" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          path="/vehicles"
+          element={
+            <ProtectedRoute>
+              <VehicleList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/vehicles/new"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={["ADMIN"]}>
+                <VehicleForm />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/vehicles/:id"
+          element={
+            <ProtectedRoute>
+              <VehicleList />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/vehicles/:id/edit"
+          element={
+            <ProtectedRoute>
+              <RoleGuard allowedRoles={["ADMIN"]}>
+                <VehicleForm />
+              </RoleGuard>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ApolloProvider client={apolloClient}>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
+    </ApolloProvider>
+  );
+}

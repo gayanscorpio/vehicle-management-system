@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { gql } from "@apollo/client";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Navigate } from "react-router-dom";
 import {
     CreateVehicleInput,
     CreateVehicleMutationData,
@@ -9,6 +9,8 @@ import {
     UpdateVehicleMutationData,
     Vehicle,
 } from "../types/Vehicle";
+
+import { useAuth } from "../context/AuthContext";
 
 //Convert the form component to typed props/state
 type VehicleFormState = {
@@ -82,6 +84,7 @@ export default function VehicleForm() {
     const { id } = useParams();
     const navigate = useNavigate();
     const isEditMode = Boolean(id);
+    const { role } = useAuth();
 
     // Local form state
     //This makes - VehicleFormState form state explicit and safe.
@@ -142,6 +145,13 @@ export default function VehicleForm() {
         },
     });
 
+    if (!role) {
+        return <Navigate to="/login" replace />;
+    }
+    if (role !== "ADMIN") {
+        return <div>Only administrators can access this page.</div>;
+    }
+
     // If a vehicle is being loaded for editing, show a loader.
     if (isEditMode && loadingVehicle) {
         return <div>Loading vehicle...</div>;
@@ -153,7 +163,7 @@ export default function VehicleForm() {
         setForm((prev) => ({
             ...prev,
             [name]:
-                name === "year" ? (value === "" ? "" : Number(value)) : value,
+                name === "year" ? (value === "" ? 0 : Number(value)) : value,
         }));
     };
 
@@ -191,6 +201,7 @@ export default function VehicleForm() {
     };
 
     return (
+
         <div style={{ maxWidth: "500px", margin: "20px auto" }}>
             <h2>{isEditMode ? "Edit Vehicle" : "Create Vehicle"}</h2>
 

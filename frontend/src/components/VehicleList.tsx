@@ -2,6 +2,7 @@ import React from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Link } from "react-router-dom";
 import { gql } from "@apollo/client";
+import { useAuth } from "../context/AuthContext";
 
 import {
     Vehicle,
@@ -48,6 +49,8 @@ const DELETE_VEHICLE = gql`
 `;
 
 function VehicleList() {
+
+    const { role } = useAuth();
     /* const { data, loading, error, refetch } = useQuery(GET_VEHICLES, {
          variables: { page: 0, size: 20 },
          fetchPolicy: "cache-and-network",
@@ -73,15 +76,17 @@ function VehicleList() {
     if (loading) return <div>Loading vehicles...</div>;
     if (error) return <div>Error: {error.message}</div>;
 
-    const vehicles = data?.vehicles?.content || [];
+    const vehicles: Vehicle[] = data?.vehicles?.content || [];
+    const isAdmin = role === "ADMIN";
 
     return (
         <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h2>Vehicles</h2>
-                <Link to="/vehicles/new">
+                {isAdmin && (<Link to="/vehicles/new">
                     <button>Create Vehicle</button>
                 </Link>
+                )}
             </div>
 
             <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "12px" }}>
@@ -105,17 +110,26 @@ function VehicleList() {
                             <td style={{ border: "1px solid #ddd", padding: "8px" }}>{vehicle.year}</td>
                             <td style={{ border: "1px solid #ddd", padding: "8px" }}>
                                 <Link to={`/vehicles/${vehicle.id}`}>View</Link>{" "}
-                                <Link to={`/vehicles/${vehicle.id}/edit`}>Edit</Link>{" "}
-                                <button
-                                    disabled={deleting}
-                                    onClick={() => {
-                                        if (window.confirm("Delete this vehicle?")) {
-                                            deleteVehicle({ variables: { id: vehicle.id } });
-                                        }
-                                    }}
-                                >
-                                    Delete
-                                </button>
+                                {isAdmin && (
+                                    <>
+                                        {" "}
+                                        <Link to={`/vehicles/${vehicle.id}/edit`}>Edit</Link>{" "}
+                                    </>
+                                )}
+                                {(role === "ADMIN" || role === "USER") && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (window.confirm("Delete this vehicle?")) {
+                                                deleteVehicle({
+                                                    variables: { id: vehicle.id },
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        Delete
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}

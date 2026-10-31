@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { gql } from "@apollo/client";
-import client from "../apolloClient";
+import { apolloClient } from "../apollo/apolloClient";
 
 import {
     CreateVehicleInput,
@@ -111,7 +111,7 @@ export const fetchVehicles = createAsyncThunk
     >("vehicle/fetchVehicles", async (args, thunkAPI) => {
         const { page = 0, size = 20 } = args ?? {};
         try {
-            const response = await client.query<VehicleListQueryData>({
+            const response = await apolloClient.query<VehicleListQueryData>({
                 query: GET_VEHICLES,
                 variables: { page, size },
             });
@@ -137,7 +137,7 @@ export const addVehicle = createAsyncThunk<
 >("vehicle/addVehicle", async (input) => {
     try {
         // ApolloClient.mutate sends a GraphQL mutation to the backend.
-        const response = await client.mutate<CreateVehicleMutationData>({
+        const response = await apolloClient.mutate<CreateVehicleMutationData>({
             mutation: CREATE_VEHICLE,
             variables: { input },
         });
