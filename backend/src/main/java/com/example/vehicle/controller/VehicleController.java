@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +27,7 @@ public class VehicleController {
 	private final VehicleService vehicleService;
 
 	@PostMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<VehicleResponse> registerVehicle(@Valid @RequestBody CreateVehicleRequest request) {
 		UUID id = vehicleService.registerVehicle(request);
 		VehicleResponse response = vehicleService.getVehicle(id);

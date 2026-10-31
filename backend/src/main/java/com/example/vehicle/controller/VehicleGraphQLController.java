@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import com.example.vehicle.dto.CreateVehicleRequest;
@@ -42,17 +43,20 @@ public class VehicleGraphQLController {
 	}
 
 	@MutationMapping
+	@PreAuthorize("hasRole('ADMIN','USER')")
 	public VehicleResponse createVehicle(@Argument CreateVehicleRequest input) {
 		UUID id = vehicleService.registerVehicle(input);
 		return vehicleService.getVehicle(id);
 	}
 
 	@MutationMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	public VehicleResponse updateVehicle(@Argument UUID id, @Argument UpdateVehicleRequest input) {
 		return vehicleService.updateVehicle(id, input);
 	}
 
 	@MutationMapping
+	@PreAuthorize("hasAnyRole('ADMIN')")
 	public Boolean deleteVehicle(@Argument UUID id) {
 		vehicleService.deleteVehicle(id);
 		return Boolean.TRUE;

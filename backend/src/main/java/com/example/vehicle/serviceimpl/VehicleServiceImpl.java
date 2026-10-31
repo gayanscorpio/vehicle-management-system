@@ -1,4 +1,4 @@
-package com.example.vehicle.service.impl;
+package com.example.vehicle.serviceimpl;
 
 import java.util.UUID;
 
