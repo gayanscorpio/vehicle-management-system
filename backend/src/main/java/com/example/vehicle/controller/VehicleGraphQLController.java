@@ -43,7 +43,7 @@ public class VehicleGraphQLController {
 	}
 
 	@MutationMapping
-	@PreAuthorize("hasRole('ADMIN','USER')")
+	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public VehicleResponse createVehicle(@Argument CreateVehicleRequest input) {
 		UUID id = vehicleService.registerVehicle(input);
 		return vehicleService.getVehicle(id);

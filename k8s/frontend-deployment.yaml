@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: gayanscorpio/vehicle-frontend:1.0.7
+          image: gayanscorpio/vehicle-frontend:1.0.10
           imagePullPolicy: Always
           ports:
             - containerPort: 80

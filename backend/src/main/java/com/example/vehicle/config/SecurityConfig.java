@@ -50,12 +50,13 @@ public class SecurityConfig {
 	CorsConfigurationSource corsConfigurationSource() {
 
 		CorsConfiguration configuration = new CorsConfiguration();
-
-		configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+		// Allowed frontend origins: local Vite dev server + the Kubernetes ingress host
+		configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://app.local"));
 
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+		configuration.setMaxAge(3600L);
 
 		configuration.setAllowCredentials(true);
 
